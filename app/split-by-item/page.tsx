@@ -15,6 +15,7 @@ type ReceiptItem = {
 type Receipt = {
   items: ReceiptItem[];
   subtotal: number;
+  discount?: number | null;
   tax?: number | null;
   total: number;
   currency?: string;
@@ -149,6 +150,26 @@ export default function SplitByItemPage() {
     return perPersonSubtotal.reduce((s, v) => s + v, 0);
   }, [perPersonSubtotal, receipt]);
 
+  // Calculate per-person discount share
+  const perPersonDiscount = useMemo(() => {
+    if (!receipt) return people.map(() => 0);
+    const discount = receipt.discount || 0;
+    if (discount === 0 || people.length === 0) return people.map(() => 0);
+
+    // Discount distributed proportionally based on each person's subtotal share
+    const totalSubtotal = perPersonSubtotal.reduce((s, v) => s + v, 0);
+    if (totalSubtotal === 0) {
+      // If no subtotal, split equally
+      const perPerson = Math.round((discount / people.length) * 100) / 100;
+      return people.map(() => perPerson);
+    }
+
+    return perPersonSubtotal.map((sub) => {
+      const share = (sub / totalSubtotal) * discount;
+      return Math.round(share * 100) / 100;
+    });
+  }, [people, receipt, perPersonSubtotal]);
+
   const perPersonTax = useMemo(() => {
     if (!receipt) return people.map(() => 0);
     const tax = receipt.tax || 0;
@@ -187,9 +208,12 @@ export default function SplitByItemPage() {
 
   const perPersonTotal = useMemo(() => {
     return perPersonSubtotal.map(
-      (p, i) => Math.round((p + (perPersonTax[i] || 0)) * 100) / 100
+      (p, i) =>
+        Math.round(
+          (p - (perPersonDiscount[i] || 0) + (perPersonTax[i] || 0)) * 100
+        ) / 100
     );
-  }, [perPersonSubtotal, perPersonTax]);
+  }, [perPersonSubtotal, perPersonDiscount, perPersonTax]);
 
   const handleApplyCalc = async (value: number) => {
     const valRounded = Math.round(value * 100) / 100;
@@ -276,17 +300,15 @@ export default function SplitByItemPage() {
 
   if (!receipt)
     return (
-      <div className="min-h-screen w-full bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
+      <div className="min-h-screen w-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
         <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
               <div className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+                <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
                   SB
                 </div>
-                <div className="text-sm font-medium tracking-wide">
-                  SplitBill
-                </div>
+                <div className="text-sm font-medium">SplitBill</div>
               </div>
             </Link>
           </div>
@@ -294,22 +316,24 @@ export default function SplitByItemPage() {
           <nav className="flex items-center gap-4">
             <button
               onClick={handleBack}
-              className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-white/20 transition"
+              className="inline-flex items-center gap-2 text-slate-300 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600 transition"
             >
               ← Kembali
             </button>
           </nav>
         </header>
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <h2 className="text-3xl font-bold mb-8">Split by Item</h2>
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
+          <h2 className="text-2xl font-bold text-slate-100 mb-8">
+            Split by Item
+          </h2>
+          <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 text-center">
             <p className="text-red-300 mb-4">
               Tidak ada data struk. Kembali ke halaman hasil.
             </p>
 
             <Link
               href="/receipt-result"
-              className="px-4 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 transition"
+              className="px-5 py-3 bg-slate-700 rounded-lg text-white font-medium hover:bg-slate-600 transition"
             >
               Kembali ke Hasil
             </Link>
@@ -319,43 +343,41 @@ export default function SplitByItemPage() {
     );
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
+    <div className="min-h-screen w-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <header className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/")}
             className="flex items-center gap-3 cursor-pointer bg-transparent border-0 p-0"
           >
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
               SB
             </div>
-            <div className="text-sm font-medium tracking-wide">Split Bill</div>
+            <div className="text-sm font-medium">SplitBill</div>
           </button>
         </div>
         <button
           onClick={handleBack}
-          className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-white/20 transition"
+          className="inline-flex items-center gap-2 text-slate-300 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600 transition"
         >
           ← Kembali
         </button>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        <h1 className="text-3xl font-bold">Split by Item</h1>
+        <h1 className="text-2xl font-bold text-slate-100">Split by Item</h1>
 
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-          <div className="flex flex-row justify-between mb-10">
-            <h3 className="font-semibold mb-4 text-center sm:text-start">
-              Daftar Orang
-            </h3>
+        <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-6">
+          <div className="flex flex-row justify-between mb-6">
+            <h3 className="font-semibold text-slate-100">Daftar Orang</h3>
             <button
               onClick={addPerson}
-              className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm text-white transition h-fit w-fit"
+              className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium text-white transition h-fit w-fit"
             >
               + Tambah
             </button>
           </div>
-          <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-1.5">
+          <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-2">
             {(() => {
               const totalPages = Math.max(
                 1,
@@ -501,8 +523,8 @@ export default function SplitByItemPage() {
               Assign items to people (multiple allowed for shared items)
             </div>
           </div>
-          <div className="overflow-x-auto hidden md:block">
-            <table className="w-full text-sm">
+          <div className="hidden md:block">
+            <table className="w-full text-sm table-fixed">
               <thead className="bg-slate-800/50">
                 <tr className="text-slate-400">
                   <th className="text-left px-4 py-3 font-medium w-[40%]">
@@ -525,7 +547,7 @@ export default function SplitByItemPage() {
                 {receipt.items.map((it, idx) => (
                   <tr key={idx} className="hover:bg-slate-700/30 transition">
                     <td className="px-4 py-3 align-middle font-medium">
-                      <div className="line-clamp-2" title={it.name}>
+                      <div className="truncate" title={it.name}>
                         {it.name}
                       </div>
                       <button
@@ -533,7 +555,7 @@ export default function SplitByItemPage() {
                           setModalText(it.name || "");
                           setModalOpen(true);
                         }}
-                        className="text-xs text-slate-400 mt-1 inline-flex items-center gap-1 hover:text-blue-400"
+                        className="text-xs text-slate-400 mt-2 inline-flex items-center gap-1.5 hover:text-indigo-400 transition"
                         aria-label="Lihat detail"
                       >
                         <svg
@@ -638,7 +660,7 @@ export default function SplitByItemPage() {
                                 setModalText(it.name || "");
                                 setModalOpen(true);
                               }}
-                              className="text-xs text-slate-400 hover:text-blue-400 mt-2 inline-flex items-center gap-1 transition"
+                              className="text-xs text-slate-400 hover:text-indigo-400 mt-2 inline-flex items-center gap-1.5 transition"
                               aria-label="Lihat detail"
                             >
                               <svg
@@ -852,6 +874,14 @@ export default function SplitByItemPage() {
                               {formatCurrency(perPersonSubtotal[i] || 0)}
                             </span>
                           </div>
+                          {(perPersonDiscount[i] || 0) > 0 && (
+                            <div className="flex justify-between text-red-400">
+                              <span>Diskon:</span>
+                              <span>
+                                -{formatCurrency(perPersonDiscount[i] || 0)}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <span>Tax share:</span>
                             <span>{formatCurrency(perPersonTax[i] || 0)}</span>
@@ -949,11 +979,13 @@ export default function SplitByItemPage() {
                     const out = {
                       people,
                       perPersonSubtotal,
+                      perPersonDiscount,
                       perPersonTax,
                       perPersonTotal,
                       // include assignments and items so share page can present item->person mapping
                       assignments,
                       items: receipt?.items ?? [],
+                      discount: receipt?.discount ?? 0,
                     };
                     localStorage.setItem("lastSplit", JSON.stringify(out));
                     setFinalized(true);

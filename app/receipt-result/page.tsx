@@ -20,6 +20,10 @@ export default function ReceiptResult() {
   const [newPriceRaw, setNewPriceRaw] = useState<string>("");
   const [taxMode, setTaxMode] = useState<"nominal" | "percent">("nominal");
   const [taxPercent, setTaxPercent] = useState<number>(0);
+  const [discountMode, setDiscountMode] = useState<"nominal" | "percent">(
+    "nominal"
+  );
+  const [discountValue, setDiscountValue] = useState<number>(0);
   // Pagination for mobile card list
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -211,7 +215,9 @@ export default function ReceiptResult() {
   function updateTax(newTax: number | null) {
     if (receipt) {
       const taxVal = Number.isFinite(newTax as number) ? (newTax as number) : 0;
-      const newTotal = receipt.subtotal + (taxVal || 0);
+      const discountVal = receipt.discount || 0;
+      const subtotalAfterDiscount = receipt.subtotal - discountVal;
+      const newTotal = subtotalAfterDiscount + (taxVal || 0);
       setReceipt({
         ...receipt,
         tax: taxVal,
@@ -224,8 +230,10 @@ export default function ReceiptResult() {
     if (receipt) {
       const pct = Number.isFinite(percent) ? percent : 0;
       setTaxPercent(pct);
-      const calculatedTax = Math.round((receipt.subtotal * pct) / 100);
-      const newTotal = receipt.subtotal + calculatedTax;
+      const discountVal = receipt.discount || 0;
+      const subtotalAfterDiscount = receipt.subtotal - discountVal;
+      const calculatedTax = Math.round((subtotalAfterDiscount * pct) / 100);
+      const newTotal = subtotalAfterDiscount + calculatedTax;
       setReceipt({
         ...receipt,
         tax: calculatedTax,
@@ -238,10 +246,52 @@ export default function ReceiptResult() {
     setTaxMode(mode);
     if (mode === "percent" && receipt) {
       // Calculate current tax as percent
+      const subtotalAfterDiscount = receipt.subtotal - (receipt.discount || 0);
       const currentPercent = receipt.tax
-        ? Math.round((receipt.tax / receipt.subtotal) * 100 * 10) / 10
+        ? Math.round((receipt.tax / subtotalAfterDiscount) * 100 * 10) / 10
         : 0;
       setTaxPercent(currentPercent);
+    }
+  }
+
+  function handleDiscountModeChange(mode: "nominal" | "percent") {
+    setDiscountMode(mode);
+    if (mode === "percent" && receipt) {
+      // Calculate current discount as percent
+      const currentPercent = receipt.discount
+        ? Math.round((receipt.discount / receipt.subtotal) * 100 * 10) / 10
+        : 0;
+      setDiscountValue(currentPercent);
+    }
+  }
+
+  function updateDiscount(newDiscount: number) {
+    if (receipt) {
+      const discVal = Number.isFinite(newDiscount) ? newDiscount : 0;
+      const subtotalAfterDiscount = receipt.subtotal - discVal;
+      const taxVal = receipt.tax || 0;
+      const newTotal = subtotalAfterDiscount + taxVal;
+      setReceipt({
+        ...receipt,
+        discount: discVal,
+        total: newTotal,
+      });
+    }
+  }
+
+  function updateDiscountByPercent(percent: number) {
+    if (receipt) {
+      const pct = Number.isFinite(percent) ? percent : 0;
+      setDiscountValue(pct);
+      const calculatedDiscount = Math.round((receipt.subtotal * pct) / 100);
+      const subtotalAfterDiscount = receipt.subtotal - calculatedDiscount;
+      const taxVal = receipt.tax || 0;
+      const newTotal = subtotalAfterDiscount + taxVal;
+      setReceipt({
+        ...receipt,
+        discount: calculatedDiscount,
+        total: newTotal,
+      });
     }
   }
 
@@ -249,7 +299,9 @@ export default function ReceiptResult() {
     if (receipt) {
       const newItems = receipt.items.filter((_, i) => i !== index);
       const newSubtotal = newItems.reduce((sum, item) => sum + item.price, 0);
-      const newTotal = newSubtotal + (receipt.tax || 0);
+      const discountVal = receipt.discount || 0;
+      const subtotalAfterDiscount = newSubtotal - discountVal;
+      const newTotal = subtotalAfterDiscount + (receipt.tax || 0);
 
       setReceipt({
         ...receipt,
@@ -261,15 +313,15 @@ export default function ReceiptResult() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
                 SB
               </div>
-              <div className="text-sm font-medium tracking-wide">SplitBill</div>
+              <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>
         </div>
@@ -277,7 +329,7 @@ export default function ReceiptResult() {
         <nav className="flex items-center gap-4">
           <Link
             href="/upload-receipt"
-            className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-white/20 transition"
+            className="inline-flex items-center gap-2 text-slate-300 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600 transition"
           >
             ← Kembali
           </Link>
@@ -285,7 +337,9 @@ export default function ReceiptResult() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold mb-8">Hasil Analisis Struk</h1>
+        <h1 className="text-2xl font-bold text-slate-100 mb-8">
+          Hasil Analisis Struk
+        </h1>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
@@ -295,7 +349,7 @@ export default function ReceiptResult() {
         )}
 
         {error && !loading && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
+          <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 text-center">
             <p className="text-red-300 mb-4">{error}</p>
             <Link
               href="/upload-receipt"
@@ -309,9 +363,11 @@ export default function ReceiptResult() {
         {receipt && !loading && (
           <div className="space-y-6">
             {/* Items Table */}
-            <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
-              <div className="px-6 py-4 bg-slate-800 border-b border-slate-700 flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold">Daftar Item</h2>
+            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 overflow-hidden">
+              <div className="px-6 py-4 bg-slate-800/80 border-b border-slate-700/50 flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-slate-100">
+                  Daftar Item
+                </h2>
                 <div className="flex items-center gap-2">
                   {addMode ? (
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
@@ -320,7 +376,7 @@ export default function ReceiptResult() {
                         placeholder="Nama item"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
-                        className="flex-1 min-w-0 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+                        className="flex-1 min-w-0 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <input
                         type="text"
@@ -328,7 +384,7 @@ export default function ReceiptResult() {
                         placeholder="Jumlah"
                         value={newQuantityRaw}
                         onChange={(e) => setNewQuantityRaw(e.target.value)}
-                        className="w-full sm:w-20 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-left"
+                        className="w-full sm:w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-left focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <input
                         type="text"
@@ -336,18 +392,18 @@ export default function ReceiptResult() {
                         placeholder="Harga"
                         value={newPriceRaw}
                         onChange={(e) => setNewPriceRaw(e.target.value)}
-                        className="w-full sm:w-28 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-left"
+                        className="w-full sm:w-28 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-left focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <div className="flex gap-2 w-full sm:w-auto">
                         <button
                           onClick={addNewItem}
-                          className="flex-1 sm:flex-none bg-green-600 px-3 py-1 rounded text-sm text-white"
+                          className="flex-1 sm:flex-none bg-emerald-600 px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-emerald-500 transition"
                         >
                           Tambah
                         </button>
                         <button
                           onClick={cancelAdd}
-                          className="flex-1 sm:flex-none bg-slate-600 px-2 py-1 rounded text-sm text-white"
+                          className="flex-1 sm:flex-none bg-slate-600 px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-slate-500 transition"
                         >
                           Batal
                         </button>
@@ -356,35 +412,35 @@ export default function ReceiptResult() {
                   ) : (
                     <button
                       onClick={startAdd}
-                      className="bg-indigo-600 px-3 py-1 rounded text-sm"
+                      className="bg-indigo-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-500 transition"
                     >
                       + Tambah Item
                     </button>
                   )}
                 </div>
               </div>
-              <div className="overflow-x-auto hidden md:block">
-                <table className="w-full">
+              <div className="hidden md:block">
+                <table className="w-full table-fixed">
                   <thead className="bg-slate-800/50">
                     <tr>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">
+                      <th className="text-left px-6 py-3 text-sm font-medium text-slate-400 w-[8%]">
                         No
                       </th>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-slate-400">
+                      <th className="text-left px-6 py-3 text-sm font-medium text-slate-400 w-[40%]">
                         Nama Barang
                       </th>
-                      <th className="text-center px-6 py-3 text-sm font-medium text-slate-400">
+                      <th className="text-center px-6 py-3 text-sm font-medium text-slate-400 w-[15%]">
                         Jumlah
                       </th>
-                      <th className="text-right px-6 py-3 text-sm font-medium text-slate-400">
+                      <th className="text-right px-6 py-3 text-sm font-medium text-slate-400 w-[22%]">
                         Harga
                       </th>
-                      <th className="text-right px-6 py-3 text-sm font-medium text-slate-400">
+                      <th className="text-right px-6 py-3 text-sm font-medium text-slate-400 w-[15%]">
                         Aksi
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700">
+                  <tbody className="divide-y divide-slate-700/50">
                     {receipt.items.map((item, index) => (
                       <tr
                         key={index}
@@ -407,7 +463,7 @@ export default function ReceiptResult() {
                                       : null
                                   )
                                 }
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+                                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -418,7 +474,7 @@ export default function ReceiptResult() {
                                 onChange={(e) => {
                                   setEditQuantityRaw(e.target.value);
                                 }}
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-center"
+                                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -429,20 +485,20 @@ export default function ReceiptResult() {
                                 onChange={(e) => {
                                   setEditPriceRaw(e.target.value);
                                 }}
-                                className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-right"
+                                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               />
                             </td>
                             <td className="px-4 py-2 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   onClick={saveEdit}
-                                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
                                 >
                                   ✓
                                 </button>
                                 <button
                                   onClick={cancelEdit}
-                                  className="bg-slate-600 hover:bg-slate-500 text-white px-2 py-1 rounded text-xs"
+                                  className="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
                                 >
                                   ✕
                                 </button>
@@ -456,7 +512,9 @@ export default function ReceiptResult() {
                               {index + 1}
                             </td>
                             <td className="px-6 py-4 text-sm font-medium">
-                              {item.name}
+                              <div className="truncate" title={item.name}>
+                                {item.name}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-center">
                               {item.quantity}
@@ -597,7 +655,7 @@ export default function ReceiptResult() {
                                   setModalText(item.name || "");
                                   setModalOpen(true);
                                 }}
-                                className="text-xs text-slate-400 hover:text-blue-400 inline-flex items-center gap-1.5 transition"
+                                className="text-xs text-slate-400 hover:text-indigo-400 inline-flex items-center gap-1.5 transition"
                                 aria-label="Lihat detail"
                               >
                                 <svg
@@ -721,22 +779,112 @@ export default function ReceiptResult() {
             </div>
 
             {/* Summary */}
-            <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-              <h2 className="text-lg font-semibold mb-4">Ringkasan</h2>
+            <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-6">
+              <h2 className="text-lg font-semibold text-slate-100 mb-4">
+                Ringkasan
+              </h2>
               <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                  <span className="text-slate-400">Subtotal</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-center py-3 border-b border-slate-700/50">
+                  <span className="text-slate-400 font-medium">Subtotal</span>
+                  <span className="font-semibold text-slate-100">
                     {formatCurrency(receipt.subtotal, receipt.currency)}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-slate-700 gap-3">
+
+                {/* Diskon Input */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-slate-700/50 gap-3">
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-slate-400">Pajak/Tax</span>
+                    <span className="text-red-400 font-medium">Diskon</span>
+                    <div className="flex bg-slate-700 rounded-lg p-0.5">
+                      <button
+                        onClick={() => handleDiscountModeChange("nominal")}
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition ${
+                          discountMode === "nominal"
+                            ? "bg-red-600 text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        Nominal
+                      </button>
+                      <button
+                        onClick={() => handleDiscountModeChange("percent")}
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition ${
+                          discountMode === "percent"
+                            ? "bg-red-600 text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        Persen
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 justify-end w-full sm:w-auto">
+                    {discountMode === "nominal" ? (
+                      <>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={
+                            receipt.discount === 0 ||
+                            receipt.discount === null ||
+                            receipt.discount === undefined
+                              ? ""
+                              : String(receipt.discount)
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const cleaned = val.replace(/[^\d.,-]/g, "");
+                            const parsed =
+                              cleaned === "" ? 0 : parseRawNumber(cleaned);
+                            updateDiscount(parsed);
+                          }}
+                          className="w-full sm:w-32 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-red-400 text-right focus:outline-none focus:ring-2 focus:ring-red-500"
+                          placeholder="0"
+                        />
+                        <span className="text-xs text-slate-500 ml-2 sm:ml-0">
+                          {receipt.currency}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={
+                            discountValue === 0 ? "" : String(discountValue)
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const cleaned = val.replace(/[^\d.,-]/g, "");
+                            const parsed =
+                              cleaned === "" ? 0 : parseRawNumber(cleaned);
+                            updateDiscountByPercent(parsed);
+                          }}
+                          className="w-12 sm:w-12 bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm text-red-400 text-right focus:outline-none focus:ring-2 focus:ring-red-500"
+                          placeholder="0"
+                        />
+                        <span className="text-xs text-slate-500">%</span>
+                        <span className="text-sm text-red-400 w-fit">
+                          = -
+                          {formatCurrency(
+                            receipt.discount || 0,
+                            receipt.currency
+                          )}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tax Input */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-slate-700/50 gap-3">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-slate-400 font-medium">Pajak</span>
                     <div className="flex bg-slate-700 rounded-lg p-0.5">
                       <button
                         onClick={() => handleTaxModeChange("nominal")}
-                        className={`px-2 py-1 text-xs rounded-md transition ${
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition ${
                           taxMode === "nominal"
                             ? "bg-indigo-600 text-white"
                             : "text-slate-400 hover:text-white"
@@ -746,7 +894,7 @@ export default function ReceiptResult() {
                       </button>
                       <button
                         onClick={() => handleTaxModeChange("percent")}
-                        className={`px-2 py-1 text-xs rounded-md transition ${
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition ${
                           taxMode === "percent"
                             ? "bg-indigo-600 text-white"
                             : "text-slate-400 hover:text-white"
@@ -775,7 +923,7 @@ export default function ReceiptResult() {
                               cleaned === "" ? 0 : parseRawNumber(cleaned);
                             updateTax(parsed);
                           }}
-                          className="w-full sm:w-32 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-right"
+                          className="w-full sm:w-32 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           placeholder="0"
                         />
                         <span className="text-xs text-slate-500 ml-2 sm:ml-0">
@@ -795,20 +943,20 @@ export default function ReceiptResult() {
                               cleaned === "" ? 0 : parseRawNumber(cleaned);
                             updateTaxByPercent(parsed);
                           }}
-                          className="w-10 sm:w-10 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-right"
+                          className="w-12 sm:w-12 bg-slate-700 border border-slate-600 rounded-lg px-2 py-2 text-sm text-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           placeholder="0"
                         />
                         <span className="text-xs text-slate-500">%</span>
-                        <span className="text-xs text-slate-400 w-fit">
+                        <span className="text-sm text-slate-300 w-fit">
                           = {formatCurrency(receipt.tax || 0, receipt.currency)}
                         </span>
                       </>
                     )}
                   </div>
                 </div>
-                <div className="flex justify-between items-center py-3 text-lg">
-                  <span className="font-semibold">Total</span>
-                  <span className="font-bold text-indigo-400">
+                <div className="flex justify-between items-center py-4 text-lg">
+                  <span className="font-semibold text-slate-100">Total</span>
+                  <span className="font-bold text-xl text-indigo-400">
                     {formatCurrency(receipt.total, receipt.currency)}
                   </span>
                 </div>
@@ -817,12 +965,6 @@ export default function ReceiptResult() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-4 pt-4">
-              {/* <button
-                onClick={() => processWithAI(ocrText)}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition"
-              >
-                🔄 Proses Ulang
-              </button> */}
               <button
                 onClick={() => {
                   try {
@@ -836,15 +978,15 @@ export default function ReceiptResult() {
                   // navigate to split page
                   (window.location as any).href = "/split-by-item";
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 rounded text-white hover:scale-105 transform transition"
+                className="flex items-center gap-2 px-5 py-3 bg-emerald-600 rounded-lg text-white font-medium hover:bg-emerald-500 transition"
               >
-                ➗ Split by Item
+                Split by Item
               </button>
               <Link
                 href="/upload-receipt"
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700 rounded text-white hover:scale-105 transform transition"
+                className="flex items-center gap-2 px-5 py-3 bg-slate-700 rounded-lg text-white font-medium hover:bg-slate-600 transition"
               >
-                📷 Scan Struk Baru
+                Scan Struk Baru
               </Link>
             </div>
           </div>

@@ -39,124 +39,115 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
-      {/* Header */}
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-200">
+      {/* Header - Clear visual hierarchy, consistent spacing */}
+      <header className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-lg shadow-indigo-500/20">
             SB
           </div>
-          <div className="text-sm font-medium tracking-wide">SplitBill</div>
+          <div className="text-base font-semibold tracking-tight text-slate-100">
+            SplitBill
+          </div>
         </div>
 
         <nav className="flex items-center gap-4">
-          <Link
-            href="/upload-receipt"
-            className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg shadow-sm transform transition hover:-translate-y-0.5 hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-          >
-            <span className="hidden sm:inline">Get Started</span>
-            <span className="sm:hidden">Start</span>
-            <ChevronRight size={16} />
+          <Link href="/upload-receipt" className="btn-primary">
+            <span>Mulai</span>
+            <ChevronRight size={18} />
           </Link>
         </nav>
       </header>
 
-      {/* Hero */}
-      <main className="max-w-6xl mx-auto px-6 py-12 flex flex-col-reverse md:flex-row items-center gap-10">
-        {/* Content */}
-        <section className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-            Minimal. Cepat. Rapi.
+      {/* Hero - Clear hierarchy: headline > subtext > CTA */}
+      <main className="max-w-6xl mx-auto px-6 py-16 md:py-24 flex flex-col-reverse md:flex-row items-center gap-12 md:gap-16">
+        {/* Content - Left aligned text (UI Design Tip #15) */}
+        <section className="flex-1 text-left">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-slate-50">
+            Bagi tagihan
+            <br />
+            <span className="text-indigo-400">dengan mudah.</span>
           </h1>
 
-          <p className="text-slate-600 dark:text-slate-300 max-w-lg mb-6">
-            Scan struk, deteksi item otomatis, lalu bagi tagihan dengan mudah.
-            Desain yang bersih dan micro-interaction membuat pengalaman terasa
-            responsif dan menyenangkan.
+          <p className="text-lg text-slate-400 max-w-lg mb-8 leading-relaxed">
+            Scan struk, deteksi item otomatis, lalu bagi tagihan dengan cepat
+            dan akurat. Tidak perlu hitung manual lagi.
           </p>
 
-          <div className="flex items-center gap-4">
-            <Link
-              href="/upload-receipt"
-              className="relative inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-pink-500 text-white px-5 py-3 rounded-lg shadow-lg hover:bg-gradient-to-r hover:from-indigo-500 hover:to-pink-400 hover:text-white overflow-hidden"
-            >
-              <span className="z-10">Ambil Foto Struk</span>
-              <ChevronRight size={18} className="z-10" />
-              <span className="absolute left-[-30%] top-0 h-full w-36 bg-white/12 blur-xl animate-shimmer" />
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            <Link href="/upload-receipt" className="btn-primary text-base">
+              <span>Scan Struk Sekarang</span>
+              <ChevronRight size={20} />
+            </Link>
+
+            <Link href="/manual-entry" className="btn-secondary text-base">
+              <span>Input Manual</span>
             </Link>
           </div>
 
-          {/* Feature chips */}
-          <div className="mt-8 flex flex-wrap gap-3">
+          {/* Feature list - Simple, no decorative colors */}
+          <div className="mt-12 grid grid-cols-2 gap-4 max-w-md">
             {[
-              { t: "✅ Auto-detect", d: 0 },
-              { t: "✅ Minimal", d: 80 },
-              { t: "✅ Cepat", d: 160 },
-              { t: "✅ Rapi", d: 240 },
-            ].map((chip, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-100 dark:border-slate-800 rounded-full px-3 py-2 text-sm shadow-sm transform transition hover:scale-105"
-                style={{
-                  animation: `chip-enter 420ms cubic-bezier(.2,.9,.2,1) both`,
-                  animationDelay: `${chip.d}ms`,
-                }}
-                role="status"
-                aria-label={chip.t}
-              >
-                {chip.t}
+              { icon: "📷", text: "Scan otomatis" },
+              { icon: "⚡", text: "Proses cepat" },
+              { icon: "💰", text: "Hitung diskon" },
+              { icon: "📤", text: "Share hasil" },
+            ].map((feat, i) => (
+              <div key={i} className="flex items-center gap-3 text-slate-300">
+                <span className="text-lg">{feat.icon}</span>
+                <span className="text-sm font-medium">{feat.text}</span>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Illustration card */}
-        <aside className="w-full md:w-[420px] flex-shrink-0">
+        {/* Illustration card - Simplified, less decorative */}
+        <aside className="w-full md:w-[400px] flex-shrink-0">
           <div
             ref={cardRef}
             onMouseMove={handleCardMove}
             onMouseLeave={handleCardLeave}
-            className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-100 dark:border-slate-800 p-6 md:p-8 transform transition"
+            className="card-elevated"
             style={cardStyle}
           >
-            <div className="absolute inset-0 pointer-events-none animate-subtle-move">
-              <div className="absolute -left-10 -top-10 w-40 h-40 bg-gradient-to-tr from-indigo-100 to-transparent rounded-full opacity-60 blur-3xl dark:opacity-20" />
-              <div className="absolute -right-8 bottom-0 w-36 h-36 bg-gradient-to-tr from-pink-100 to-transparent rounded-full opacity-60 blur-2xl dark:opacity-20" />
-            </div>
-
-            <div className="relative bg-white dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-800">
-              <div className="p-6 flex items-center gap-4">
-                <div className="w-20 h-28 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-slate-400">
+            <div className="bg-slate-900/80 rounded-xl overflow-hidden border border-slate-700/50">
+              <div className="p-6 flex items-center gap-5">
+                <div className="w-16 h-20 bg-slate-800 rounded-lg flex items-center justify-center">
                   <Image
                     src="/receipt-illustration.svg"
-                    alt="Receipt"
-                    width={120}
-                    height={160}
-                    className="object-contain"
+                    alt="Receipt illustration"
+                    width={100}
+                    height={130}
+                    className="object-contain opacity-80"
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="text-lg font-semibold">Scan & Split</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Ambil foto, sistem mendeteksi item & harga.
+                  <div className="text-lg font-semibold text-slate-100 mb-1">
+                    Scan & Split
+                  </div>
+                  <div className="text-sm text-slate-400 leading-relaxed">
+                    Foto struk, sistem deteksi item & harga secara otomatis.
                   </div>
                 </div>
               </div>
 
-              <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-transparent flex items-center justify-between">
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  Preview
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between">
+                <div className="text-xs text-slate-500 font-medium uppercase tracking-wide">
+                  Status
                 </div>
-                <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Ready
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                  <span className="text-sm font-medium text-slate-300">
+                    Ready
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            Built for clarity — works great on mobile.
-          </div>
+          <p className="mt-4 text-sm text-slate-500 text-center">
+            Optimal untuk mobile & desktop
+          </p>
         </aside>
       </main>
     </div>

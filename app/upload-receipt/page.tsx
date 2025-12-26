@@ -188,15 +188,15 @@ export default function Receipt() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
                 SB
               </div>
-              <div className="text-sm font-medium tracking-wide">SplitBill</div>
+              <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>
         </div>
@@ -205,11 +205,13 @@ export default function Receipt() {
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <section className="md:col-span-2 flex flex-col gap-6">
-            <div className="text-3xl font-bold">Upload Struk</div>
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 min-h-[420px] flex items-center justify-center">
+            <div className="text-2xl font-bold text-slate-100">
+              Upload Struk
+            </div>
+            <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-6 min-h-[420px] flex items-center justify-center">
               <div className="w-full flex flex-col items-center gap-4">
                 <div className="w-full max-w-2xl">
-                  <div className="h-[420px] w-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                  <div className="h-[420px] w-full rounded-lg overflow-hidden bg-slate-900/60 border border-slate-700/50 flex items-center justify-center">
                     {previewImage ? (
                       <div className="relative w-full h-full">
                         <img
@@ -219,9 +221,9 @@ export default function Receipt() {
                         />
                         <button
                           onClick={removeImage}
-                          className="absolute top-3 right-3 bg-white dark:bg-slate-700 rounded-full px-3 py-1 shadow z-10"
+                          className="absolute top-3 right-3 bg-slate-800 text-slate-300 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-slate-700 transition"
                         >
-                          x
+                          ✕
                         </button>
                       </div>
                     ) : showCamera ? (
@@ -233,7 +235,7 @@ export default function Receipt() {
                         />
                       </div>
                     ) : (
-                      <div className="text-center text-slate-500 dark:text-slate-400 px-6">
+                      <div className="text-center text-slate-500 px-6">
                         Preview Image
                       </div>
                     )}
@@ -245,35 +247,35 @@ export default function Receipt() {
                     {!showCamera ? (
                       <button
                         onClick={() => setShowCamera(true)}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg px-4 py-3 bg-gradient-to-r from-indigo-600 to-pink-500 text-white shadow-md hover:bg-indigo-700 cursor-pointer hover:bg-gradient-to-r hover:from-indigo-500 hover:to-pink-400 hover:text-white ${
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg px-5 py-3 bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition ${
                           processing ? "opacity-60 pointer-events-none" : ""
                         }`}
                         disabled={processing}
                       >
-                        <span className="text-lg">📸</span>
-                        <span className="font-medium">Ambil Foto</span>
+                        <span>📸</span>
+                        <span>Ambil Foto</span>
                       </button>
                     ) : (
                       <button
                         onClick={() => setShowCamera(false)}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg px-4 py-3 bg-gradient-to-r from-indigo-600 to-pink-500 text-white shadow-md hover:bg-indigo-700 cursor-pointer hover:bg-gradient-to-r hover:from-indigo-500 hover:to-pink-400 hover:text-white ${
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg px-5 py-3 bg-slate-700 text-white font-medium hover:bg-slate-600 transition ${
                           processing ? "opacity-60 pointer-events-none" : ""
                         }`}
                         disabled={processing}
                       >
-                        <span className="text-lg">✕</span>
-                        <span className="font-medium">Stop Kamera</span>
+                        <span>✕</span>
+                        <span>Stop Kamera</span>
                       </button>
                     )}
 
                     <label htmlFor="file-input" className="w-full sm:w-auto">
                       <span
-                        className={`flex items-center justify-center gap-2 w-full sm:w-auto rounded-lg px-4 py-3 bg-gradient-to-r from-indigo-600 to-pink-500 text-white shadow-md cursor-pointer hover:bg-gradient-to-r hover:from-indigo-500 hover:to-pink-400 hover:text-white  ${
+                        className={`flex items-center justify-center gap-2 w-full sm:w-auto rounded-lg px-5 py-3 bg-indigo-600 text-white font-medium cursor-pointer hover:bg-indigo-500 transition ${
                           processing ? "opacity-60 pointer-events-none" : ""
                         }`}
                       >
-                        <span className="text-lg">🖼️</span>
-                        <span className="font-medium">Gallery</span>
+                        <span>🖼️</span>
+                        <span>Gallery</span>
                       </span>
                     </label>
                   </div>
@@ -293,20 +295,20 @@ export default function Receipt() {
           </section>
 
           <aside className="md:col-span-1 md:pt-15">
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-              <h3 className="font-semibold mb-2">Tips</h3>
-              <ul className="text-sm text-slate-600 dark:text-slate-300 list-disc pl-5 space-y-2">
+            <div className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
+              <h3 className="font-semibold text-slate-100 mb-3">Tips</h3>
+              <ul className="text-sm text-slate-300 list-disc pl-5 space-y-2 leading-relaxed">
                 <li>Pastikan struk rata dan pencahayaan cukup.</li>
                 <li>Potong area yang tidak perlu agar hasil lebih akurat.</li>
                 <li>Posisikan kamera tegak lurus dengan struk.</li>
               </ul>
             </div>
 
-            <div className="mt-6 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-6 rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
+              <div className="text-sm font-medium text-slate-400 mb-2">
                 Processing
               </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded mt-2 overflow-hidden">
+              <div className="w-full bg-slate-900/60 h-2 rounded-full mt-2 overflow-hidden">
                 {/** If OCR is in late stage (>=70% but not complete) show the bar at 70% with a pulse animation to indicate finalizing work. */}
                 {(() => {
                   const atSeventy =
@@ -316,17 +318,17 @@ export default function Receipt() {
                     <div
                       // key changes when a new input/OCR run starts so the element remounts
                       key={progressKey}
-                      className={`h-2 ${
+                      className={`h-2 rounded-full ${
                         atSeventy
-                          ? "bg-gradient-to-r from-indigo-600 to-pink-500 animate-pulse"
-                          : "bg-indigo-600 dark:bg-pink-500 transition-all"
+                          ? "bg-indigo-500 animate-pulse"
+                          : "bg-indigo-600 transition-all"
                       }`}
                       style={{ width: `${displayedProgress}%` }}
                     />
                   );
                 })()}
               </div>
-              <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+              <div className="mt-3 text-sm text-slate-300">
                 {processing ? (
                   <>
                     <div className="font-medium">
@@ -334,7 +336,9 @@ export default function Receipt() {
                         ? "Memproses..."
                         : statusText}
                     </div>
-                    <div className="text-xs mt-1">Progress: {progress}%</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Progress: {progress}%
+                    </div>
                   </>
                 ) : (
                   <div className="text-sm text-slate-500">Ready</div>
@@ -342,21 +346,21 @@ export default function Receipt() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-4 rounded-xl border border-slate-700/50 bg-slate-800/60 p-5">
+              <div className="text-sm font-medium text-slate-400 mb-2">
                 Process & Result
               </div>
-              <div className="mt-3 text-sm text-slate-700 dark:text-slate-200">
+              <div className="mt-3 text-sm text-slate-300">
                 {processing ? (
                   <div className="flex flex-col items-start">
-                    <div className="text-xs text-slate-400 mt-2">
+                    <div className="text-sm text-slate-400 mt-2 leading-relaxed">
                       Sedang menjalankan scan, tunggu sampai selesai untuk
                       melihat hasil AI.
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-500">
-                    scan siap. Klik tombol untuk melihat hasil yang sudah
+                  <div className="text-sm text-slate-400 leading-relaxed">
+                    Scan siap. Klik tombol untuk melihat hasil yang sudah
                     dirapikan oleh AI.
                   </div>
                 )}
@@ -378,25 +382,27 @@ export default function Receipt() {
                   router.push("/receipt-result");
                 }}
                 disabled={processing || !ocrText || ocrValid !== true}
-                className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg shadow-md transition ${
+                className={`mt-4 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-medium transition ${
                   processing || !ocrText || ocrValid !== true
-                    ? "opacity-60 pointer-events-none bg-slate-400"
-                    : "bg-gradient-to-r from-indigo-600 to-pink-500 text-white cursor-pointerhover:bg-gradient-to-r hover:from-indigo-500 hover:to-pink-400 hover:text-white "
+                    ? "opacity-60 pointer-events-none bg-slate-600 text-slate-400"
+                    : "bg-indigo-600 text-white hover:bg-indigo-500"
                 }`}
               >
                 <span>✨</span>
-                <span className="font-medium">Lihat Hasil dengan AI</span>
+                <span>Lihat Hasil dengan AI</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
 
               {ocrValid === false && (
-                <div className="mt-3 text-sm text-yellow-600">
-                  <div>Scan tidak menghasilkan hasil yang dapat diproses.</div>
-                  <div>
+                <div className="mt-4 p-4 rounded-lg bg-amber-900/30 border border-amber-700/50 text-amber-200 text-sm">
+                  <div className="font-medium mb-2">
+                    Scan tidak menghasilkan hasil yang dapat diproses.
+                  </div>
+                  <div className="text-amber-300/80 mb-3 leading-relaxed">
                     Silakan ulangi scan sesuai tips (pencahayaan, posisi, potong
                     area) atau masukan manual.
                   </div>
-                  <div className="mt-2 flex gap-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => {
                         // Clear preview and stored image so camera is shown
@@ -411,12 +417,12 @@ export default function Receipt() {
                         setOcrConfidence(null);
                         setShowCamera(true);
                       }}
-                      className="px-3 py-2 border border-emerald-600 rounded-md text-white bg-emerald-600 hover:bg-emerald-500 hover:text-white"
+                      className="px-4 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-500 transition"
                     >
                       Ambil Ulang Foto
                     </button>
                     <Link href="/manual-entry">
-                      <button className="px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500">
+                      <button className="px-4 py-2 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-600 transition">
                         Masukkan Manual
                       </button>
                     </Link>

@@ -1,12 +1,65 @@
 @import "tailwindcss";
 
+/* ===== BASE TYPOGRAPHY SYSTEM ===== */
+/* UI Design Tips: 
+   - #10: Single sans-serif typeface (Inter)
+   - #11: Tall x-height for readability  
+   - #13: Regular (400) and Bold (600/700) weights only
+   - #14: Avoid pure black - use dark grey (slate-800/900)
+   - #16: Line-height 1.5+ for body text
+*/
+
+:root {
+  --line-height-body: 1.6;
+  --line-height-heading: 1.3;
+}
+
+/* Body text defaults */
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  line-height: var(--line-height-body);
+  letter-spacing: -0.01em;
+}
+
+/* Headings use Albert Sans & Montserrat Alternates for brand identity */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-montserrat-alternates);
+  font-family: "Albert Sans", "Montserrat Alternates", var(--font-inter),
+    system-ui, sans-serif;
+  font-weight: 600;
+  line-height: var(--line-height-heading);
+  letter-spacing: -0.02em;
+}
+
+/* Utility class for title font */
+.font-title {
+  font-family: "Albert Sans", "Montserrat Alternates", var(--font-inter),
+    system-ui, sans-serif;
+}
+
+/* Ensure proper paragraph spacing */
+p {
+  line-height: var(--line-height-body);
+  margin-bottom: 1em;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== FOCUS STATES (Accessibility) ===== */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(99 102 241 / 0.6);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 /* Intro animations (keyframes used by components/Intro/Intro.tsx) */
@@ -159,14 +212,7 @@ h6 {
   }
 }
 
-/* accessible focus helper */
-:focus {
-  outline: none;
-}
-:focus-visible {
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
-  border-radius: 8px;
-}
+/* accessible focus helper - already defined above, removing duplicate */
 
 /* reduce-motion support: disable long-running animations when users prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -189,4 +235,99 @@ h6 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ===== CONSISTENT BUTTON STYLES ===== */
+/* UI Design Tips #2, #3, #6, #7: Consistency, similar elements function similarly, 
+   purposeful color, and 3:1 contrast ratio */
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-3 
+         bg-indigo-600 hover:bg-indigo-500 
+         text-white font-medium rounded-xl
+         shadow-lg shadow-indigo-500/20
+         transition-all duration-200 ease-out
+         hover:shadow-xl hover:shadow-indigo-500/30
+         active:scale-[0.98];
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-3
+         bg-slate-800 hover:bg-slate-700
+         text-slate-200 font-medium rounded-xl
+         border border-slate-700 hover:border-slate-600
+         transition-all duration-200 ease-out
+         active:scale-[0.98];
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2
+         bg-red-600/10 hover:bg-red-600/20
+         text-red-400 font-medium rounded-lg
+         transition-all duration-200 ease-out;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2
+         bg-transparent hover:bg-slate-800/50
+         text-slate-300 hover:text-slate-100 font-medium rounded-lg
+         transition-all duration-200 ease-out;
+}
+
+/* ===== CARD STYLES ===== */
+/* UI Design Tips #1, #5: Use space to group, remove unnecessary styles */
+
+.card {
+  @apply bg-slate-800/40 backdrop-blur-sm rounded-2xl 
+         border border-slate-700/50
+         p-6;
+}
+
+.card-elevated {
+  @apply bg-slate-800/60 backdrop-blur-sm rounded-2xl 
+         border border-slate-700/50
+         shadow-xl shadow-black/20
+         p-6;
+}
+
+/* ===== INPUT STYLES ===== */
+/* Consistent form controls */
+
+.input {
+  @apply w-full px-4 py-3 
+         bg-slate-800/60 
+         border border-slate-700 
+         rounded-xl 
+         text-slate-100 
+         placeholder:text-slate-500
+         focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20
+         transition-colors duration-200;
+}
+
+.input-sm {
+  @apply px-3 py-2 text-sm rounded-lg;
+}
+
+/* ===== LABEL STYLES ===== */
+.label {
+  @apply block text-sm font-medium text-slate-300 mb-2;
+}
+
+/* ===== BADGE/TAG STYLES ===== */
+.badge {
+  @apply inline-flex items-center px-2.5 py-1 
+         text-xs font-medium rounded-full
+         bg-slate-700/50 text-slate-300;
+}
+
+.badge-primary {
+  @apply bg-indigo-500/20 text-indigo-300;
+}
+
+.badge-success {
+  @apply bg-emerald-500/20 text-emerald-300;
+}
+
+.badge-danger {
+  @apply bg-red-500/20 text-red-300;
 }

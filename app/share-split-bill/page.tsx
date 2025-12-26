@@ -8,10 +8,12 @@ import TruncatedTextModal from "../components/TruncatedTextModal/TruncatedTextMo
 type LastSplit = {
   people: string[];
   perPersonSubtotal: number[];
+  perPersonDiscount?: number[];
   perPersonTax: number[];
   perPersonTotal: number[];
   assignments?: Record<number, number[]>;
   items?: any[];
+  discount?: number;
 };
 
 export default function ShareSplitPage() {
@@ -28,13 +30,15 @@ export default function ShareSplitPage() {
   // Pagination for per-person summary
   const [summaryPage, setSummaryPage] = useState(1);
   const summaryPerPage = 2;
+  // Preview textarea expand/collapse state
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   // (share menu removed) share buttons will be individual icon links
   // Preview textarea auto-resize ref
   const previewRef = useRef<HTMLTextAreaElement | null>(null);
 
   const adjustPreviewHeight = () => {
     const el = previewRef.current;
-    if (!el) return;
+    if (!el || !isPreviewExpanded) return;
     el.style.height = "auto";
     // add 2px buffer to avoid clipping
     el.style.height = `${el.scrollHeight + 2}px`;
@@ -72,10 +76,10 @@ export default function ShareSplitPage() {
     setPreviewText(text);
   }, [data, receipt, separator, compact]);
 
-  // adjust textarea height whenever previewText updates
+  // adjust textarea height whenever previewText updates or expanded state changes
   useEffect(() => {
     adjustPreviewHeight();
-  }, [previewText]);
+  }, [previewText, isPreviewExpanded]);
 
   // Clamp summary page when people count changes
   useEffect(() => {
@@ -162,6 +166,11 @@ export default function ShareSplitPage() {
       lines.push(
         `  Subtotal: ${formatCurrency(data.perPersonSubtotal[i] || 0)}`
       );
+      if (data.perPersonDiscount && (data.perPersonDiscount[i] || 0) > 0) {
+        lines.push(
+          `  Diskon: -${formatCurrency(data.perPersonDiscount[i] || 0)}`
+        );
+      }
       lines.push(`  Tax: ${formatCurrency(data.perPersonTax[i] || 0)}`);
       // include assigned items if available
       if (data.assignments && items && items.length) {
@@ -299,15 +308,15 @@ export default function ShareSplitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-semibold shadow-md">
+              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
                 SB
               </div>
-              <div className="text-sm font-medium tracking-wide">SplitBill</div>
+              <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>
         </div>
@@ -315,7 +324,7 @@ export default function ShareSplitPage() {
         <nav className="flex items-center gap-4">
           <Link
             href="/split-by-item"
-            className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-white/20 transition"
+            className="inline-flex items-center gap-2 text-slate-300 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600 transition"
           >
             ← Kembali
           </Link>
@@ -323,24 +332,24 @@ export default function ShareSplitPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold mb-6">Share Split</h1>
+        <h1 className="text-2xl font-bold text-slate-100 mb-6">Share Split</h1>
 
         {!data ? (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
-            <p className="text-slate-300">
+          <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 text-center">
+            <p className="text-slate-300 leading-relaxed">
               Tidak ada data split. Kembali ke halaman split untuk membuat
               split.
             </p>
-            <div className="mt-4 flex gap-2 items-center justify-center">
+            <div className="mt-4 flex gap-3 items-center justify-center">
               <Link
                 href="/split-by-item"
-                className="px-4 py-2 bg-indigo-600 rounded text-white hover:bg-indigo-500 transition"
+                className="px-5 py-3 bg-indigo-600 rounded-lg text-white font-medium hover:bg-indigo-500 transition"
               >
                 Ke Split
               </Link>
               <Link
                 href="/receipt-result"
-                className="px-4 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 transition"
+                className="px-5 py-3 bg-slate-700 rounded-lg text-white font-medium hover:bg-slate-600 transition"
               >
                 Ke Hasil Struk
               </Link>
@@ -351,13 +360,13 @@ export default function ShareSplitPage() {
             <div className="flex gap-3 flex-wrap">
               <button
                 onClick={copySummary}
-                className="px-3 py-2 text-s sm:text-base bg-emerald-600 hover:bg-emerald-500 rounded text-white"
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-medium transition"
               >
                 Copy Ringkasan
               </button>
               <button
                 onClick={shareData}
-                className="px-3 py-2 text-s sm:text-base bg-sky-600 hover:bg-sky-500 rounded text-white"
+                className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-white font-medium transition"
               >
                 Share
               </button>
@@ -368,7 +377,7 @@ export default function ShareSplitPage() {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white transition"
                 aria-label="Share via WhatsApp"
               >
                 <img
@@ -384,7 +393,7 @@ export default function ShareSplitPage() {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white transition"
                 aria-label="Share via Telegram"
               >
                 <svg
@@ -399,22 +408,27 @@ export default function ShareSplitPage() {
               </a>
             </div>
 
-            <div className="flex items-center gap-3 mt-3">
-              <label className="text-sm text-slate-300">Separator:</label>
-              <select
-                value={separator}
-                onChange={(e) => setSeparator(e.target.value as any)}
-                className="bg-slate-700 text-slate-100 px-2 py-1 rounded"
-              >
-                <option value="newline">New line</option>
-                <option value="pipe">Compact</option>
-              </select>
+            <div className="flex items-center gap-4 mt-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-300">
+                  Separator:
+                </label>
+                <select
+                  value={separator}
+                  onChange={(e) => setSeparator(e.target.value as any)}
+                  className="bg-slate-700 border border-slate-600 text-slate-100 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="newline">New line</option>
+                  <option value="pipe">Compact</option>
+                </select>
+              </div>
 
-              <label className="flex items-center gap-2 text-sm ml-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
                 <input
                   type="checkbox"
                   checked={compact}
                   onChange={(e) => setCompact(e.target.checked)}
+                  className="rounded"
                 />
                 Compact message
               </label>
@@ -424,7 +438,7 @@ export default function ShareSplitPage() {
                 onClick={regeneratePreview}
                 aria-label="Regenerate preview text"
                 title="Regenerate preview"
-                className="hidden ml-3 sm:ml-3 sm:w-fit sm:inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm items-center justify-center cursor-pointer"
+                className="hidden sm:inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white text-sm font-medium items-center justify-center cursor-pointer transition"
               >
                 Regenerate Preview
               </button>
@@ -434,22 +448,75 @@ export default function ShareSplitPage() {
               onClick={regeneratePreview}
               aria-label="Regenerate preview text"
               title="Regenerate preview"
-              className="inline-flex w-fit sm:hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm items-center justify-center cursor-pointer"
+              className="inline-flex w-fit sm:hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white text-sm font-medium items-center justify-center cursor-pointer transition mt-3"
             >
               Regenerate Preview
             </button>
 
-            <div className="mt-3">
-              <label className="text-sm text-slate-300">
-                Preview / Edit message:
-              </label>
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-slate-300">
+                  Preview / Edit message:
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewExpanded(!isPreviewExpanded)}
+                  className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition"
+                  title={isPreviewExpanded ? "Collapse" : "Expand"}
+                  aria-label={
+                    isPreviewExpanded ? "Collapse preview" : "Expand preview"
+                  }
+                >
+                  {isPreviewExpanded ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <polyline points="4 14 10 14 10 20" />
+                      <polyline points="20 10 14 10 14 4" />
+                      <line x1="14" y1="10" x2="21" y2="3" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <polyline points="15 3 21 3 21 9" />
+                      <polyline points="9 21 3 21 3 15" />
+                      <line x1="21" y1="3" x2="14" y2="10" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                  )}
+                </button>
+              </div>
               <textarea
                 ref={previewRef}
                 value={previewText}
                 onChange={(e) => setPreviewText(e.target.value)}
-                // let JS control height
-                rows={1}
-                className="w-full resize-none h-auto overflow-hidden mt-2 bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white"
+                rows={isPreviewExpanded ? undefined : 6}
+                className={`w-full mt-0 bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  isPreviewExpanded
+                    ? "resize-none h-auto overflow-hidden"
+                    : "resize-y overflow-auto"
+                }`}
+                style={
+                  isPreviewExpanded && previewRef.current
+                    ? { height: `${previewRef.current.scrollHeight + 2}px` }
+                    : undefined
+                }
               />
             </div>
 
@@ -463,19 +530,19 @@ export default function ShareSplitPage() {
 
               return (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                     {paginated.map((p, idx) => {
                       const i = startIndex + idx;
                       return (
                         <div
                           key={i}
-                          className="relative bg-slate-800/50 rounded-lg p-4 border border-slate-700"
+                          className="relative bg-slate-800/60 rounded-xl p-5 border border-slate-700/50"
                         >
                           <button
                             onClick={() => sharePerson(i)}
                             title={`Share ${p}`}
                             aria-label={`Share ${p}`}
-                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-700 flex items-center justify-center text-white"
+                            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center text-white transition"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -498,32 +565,46 @@ export default function ShareSplitPage() {
                               />
                             </svg>
                           </button>
-                          <div className="text-sm text-slate-300">{p}</div>
+                          <div className="text-sm font-medium text-slate-300">
+                            {p}
+                          </div>
                           <div className="text-xl font-bold mt-2 text-indigo-400">
                             {formatCurrency(data?.perPersonTotal[i] || 0)}
                           </div>
-                          <div className="text-xs text-slate-400 mt-2 space-y-1">
+                          <div className="text-sm text-slate-400 mt-3 space-y-2">
                             <div className="flex justify-between">
                               <span>Subtotal:</span>
-                              <span>
+                              <span className="text-slate-300">
                                 {formatCurrency(
                                   data?.perPersonSubtotal[i] || 0
                                 )}
                               </span>
                             </div>
+                            {data?.perPersonDiscount &&
+                              (data?.perPersonDiscount[i] || 0) > 0 && (
+                                <div className="flex justify-between text-red-400">
+                                  <span>Diskon:</span>
+                                  <span>
+                                    -
+                                    {formatCurrency(
+                                      data?.perPersonDiscount[i] || 0
+                                    )}
+                                  </span>
+                                </div>
+                              )}
                             <div className="flex justify-between">
-                              <span>Tax:</span>
-                              <span>
+                              <span>Pajak:</span>
+                              <span className="text-slate-300">
                                 {formatCurrency(data?.perPersonTax[i] || 0)}
                               </span>
                             </div>
                             {data?.assignments &&
                               (data.items ?? receipt?.items)?.length > 0 && (
-                                <div className="mt-2">
-                                  <div className="text-slate-300 text-xs font-medium">
-                                    Assigned items:
+                                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                                  <div className="text-slate-300 text-sm font-medium">
+                                    Item yang ditanggung:
                                   </div>
-                                  <ul className="list-disc pl-5 text-xs text-slate-300 mt-1">
+                                  <ul className="list-disc pl-5 text-sm text-slate-400 mt-2 space-y-1">
                                     {(() => {
                                       const itemsList =
                                         (data.items ?? receipt?.items) || [];
@@ -553,7 +634,7 @@ export default function ShareSplitPage() {
                                                   setModalText(n);
                                                   setModalOpen(true);
                                                 }}
-                                                className="text-xs text-slate-400 ml-2 inline-flex items-center gap-1 hover:text-blue-400"
+                                                className="text-xs text-slate-400 ml-2 inline-flex items-center gap-1.5 hover:text-indigo-400 transition"
                                                 aria-label="Lihat detail"
                                               >
                                                 <svg
@@ -658,13 +739,15 @@ export default function ShareSplitPage() {
             {receipt?.items && receipt.items.length > 0 && (
               <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
                 <h3 className="font-semibold mb-3">Ringkasan</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div>
+                  <table className="w-full text-sm table-fixed">
                     <thead className="text-slate-400 border-b border-slate-700">
                       <tr>
-                        <th className="text-left px-3 py-2">Nama</th>
-                        <th className="text-center px-3 py-2">Jumlah</th>
-                        <th className="text-right px-3 py-2">Harga</th>
+                        <th className="text-left px-3 py-2 w-[45%]">Nama</th>
+                        <th className="text-center px-3 py-2 w-[20%]">
+                          Jumlah
+                        </th>
+                        <th className="text-right px-3 py-2 w-[35%]">Harga</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700">
@@ -672,7 +755,7 @@ export default function ShareSplitPage() {
                         <tr key={idx} className="hover:bg-slate-700/20">
                           <td className="px-3 py-2">
                             <div
-                              className="line-clamp-2 h-4"
+                              className="truncate"
                               title={it.name || `(Item ${idx + 1})`}
                             >
                               {it.name || `(Item ${idx + 1})`}
@@ -682,7 +765,7 @@ export default function ShareSplitPage() {
                                 setModalText(it.name || `(Item ${idx + 1})`);
                                 setModalOpen(true);
                               }}
-                              className="text-xs text-slate-400 mt-1 inline-flex items-center gap-1 hover:text-blue-400"
+                              className="text-xs text-slate-400 mt-2 inline-flex items-center gap-1.5 hover:text-indigo-400 transition"
                               aria-label="Lihat detail"
                             >
                               <svg
