@@ -364,9 +364,12 @@ export async function recognizeReceiptFromLocalStorage(
   // langPath points to local public folder first, with CDN fallback via ensureLangFilesExist
   const normalizedWorkerOptions = Object.assign(
     {
-      langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/lang-data",
-      workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js",
-      corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd.wasm.js",
+      langPath:
+        "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/lang-data",
+      workerPath:
+        "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js",
+      corePath:
+        "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd.wasm.js",
     },
     (opts as any).workerOptions || {}
   );
@@ -405,7 +408,9 @@ export async function recognizeReceiptFromLocalStorage(
   } catch (workerError: any) {
     console.error("Worker creation failed:", workerError);
     throw new Error(
-      `Failed to initialize OCR worker: ${workerError?.message || "Unknown error"}. Please check your internet connection.`
+      `Failed to initialize OCR worker: ${
+        workerError?.message || "Unknown error"
+      }. Please check your internet connection.`
     );
   }
 
