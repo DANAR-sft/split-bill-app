@@ -444,7 +444,10 @@ export async function recognizeReceiptFromLocalStorage(
     onProgress?.({ status: "recognizing", progress: 50 });
     console.log("[OCR] Starting recognition...");
     const result = await worker.recognize(imageToSend);
-    console.log("[OCR] Recognition complete, text length:", result?.data?.text?.length || 0);
+    console.log(
+      "[OCR] Recognition complete, text length:",
+      result?.data?.text?.length || 0
+    );
 
     onProgress?.({ status: "done", progress: 100 });
 
