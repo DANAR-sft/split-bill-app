@@ -360,18 +360,18 @@ export async function recognizeReceiptFromLocalStorage(
   }
 
   // Configure paths for Tesseract.js assets
-  // Use CDN for worker and core files to ensure reliability in production
-  // Use non-SIMD WASM for broader browser compatibility
+  // Use unpkg CDN which supports CORS properly for Vercel deployments
+  // Using tesseract.js v4 legacy mode for better compatibility (no SharedArrayBuffer required)
   const normalizedWorkerOptions = Object.assign(
     {
-      langPath:
-        "https://cdn.jsdelivr.net/npm/@aspect-build/tesseract.js-lang@5/lang-data",
+      langPath: "https://tessdata.projectnaptha.com/4.0.0",
       workerPath:
-        "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
+        "https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/worker.min.js",
       corePath:
-        "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js",
-      // Disable caching issues
-      cacheMethod: "none",
+        "https://cdn.jsdelivr.net/npm/tesseract.js-core@4.0.4/tesseract-core.wasm.js",
+      // Legacy mode - doesn't require SharedArrayBuffer
+      legacyCore: true,
+      legacyLang: true,
     },
     (opts as any).workerOptions || {}
   );
@@ -409,11 +409,22 @@ export async function recognizeReceiptFromLocalStorage(
 
   let worker: any;
   try {
-    worker = await (createWorker as any)(
-      langString,
-      1, // OEM 1 = LSTM only (best for receipts)
-      normalizedWorkerOptions
-    );
+    // Tesseract.js v4 API: createWorker(options) then loadLanguage + initialize
+    // Tesseract.js v5+ API: createWorker(lang, oem, options)
+    // Try v5+ first, fallback to v4
+    try {
+      worker = await (createWorker as any)(
+        langString,
+        1, // OEM 1 = LSTM only (best for receipts)
+        normalizedWorkerOptions
+      );
+    } catch (v5Error) {
+      console.log("[OCR] Trying v4 API fallback...");
+      // v4 API
+      worker = await (createWorker as any)(normalizedWorkerOptions);
+      await worker.loadLanguage(langString);
+      await worker.initialize(langString);
+    }
     console.log("[OCR] Worker created successfully");
   } catch (workerError: any) {
     console.error("[OCR] Worker creation failed:", workerError);

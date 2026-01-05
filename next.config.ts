@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
 
-  // Allow cross-origin requests for Tesseract.js CDN assets
+  // Headers for Tesseract.js WASM support on Vercel
   async headers() {
     return [
       {
@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "credentialless",
+            value: "require-corp",
           },
         ],
       },
