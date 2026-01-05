@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Logo from "@/app/components/Logo/Logo";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -193,9 +194,7 @@ export default function Receipt() {
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                SB
-              </div>
+              <Logo />
               <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>

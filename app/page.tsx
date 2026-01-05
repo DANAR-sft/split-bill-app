@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Logo from "@/app/components/Logo/Logo";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 
@@ -43,9 +44,7 @@ export default function Home() {
       {/* Header - Clear visual hierarchy, consistent spacing */}
       <header className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-lg shadow-indigo-500/20">
-            SB
-          </div>
+          <Logo />
           <div className="text-base font-semibold tracking-tight text-slate-100">
             SplitBill
           </div>

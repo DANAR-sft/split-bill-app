@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CalculatorOverlay from "./CalculatorOverlay";
 import Link from "next/link";
+import Logo from "@/app/components/Logo/Logo";
 import { useRouter } from "next/navigation";
 import TruncatedTextModal from "../components/TruncatedTextModal/TruncatedTextModal";
 
@@ -305,9 +306,7 @@ export default function SplitByItemPage() {
           <div className="flex items-center gap-3">
             <Link href="/">
               <div className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                  SB
-                </div>
+                <Logo />
                 <div className="text-sm font-medium">SplitBill</div>
               </div>
             </Link>
@@ -350,9 +349,7 @@ export default function SplitByItemPage() {
             onClick={() => router.push("/")}
             className="flex items-center gap-3 cursor-pointer bg-transparent border-0 p-0"
           >
-            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
-              SB
-            </div>
+            <Logo />
             <div className="text-sm font-medium">SplitBill</div>
           </button>
         </div>

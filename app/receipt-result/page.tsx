@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Logo from "@/app/components/Logo/Logo";
 import { parseReceiptWithAI, Receipt, ReceiptItem } from "@/app/util/geminiAI";
 import TruncatedTextModal from "../components/TruncatedTextModal/TruncatedTextModal";
 
@@ -318,9 +319,7 @@ export default function ReceiptResult() {
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                SB
-              </div>
+              <Logo />
               <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>

@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import TruncatedTextModal from "../components/TruncatedTextModal/TruncatedTextModal";
 import Link from "next/link";
+import Logo from "@/app/components/Logo/Logo";
 import { useRouter } from "next/navigation";
 
 type Item = {
@@ -228,9 +229,7 @@ export default function ManualEntryPage() {
         <div className="flex items-center gap-3">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                SB
-              </div>
+              <Logo />
               <div className="text-sm font-medium">SplitBill</div>
             </div>
           </Link>
