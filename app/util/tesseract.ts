@@ -361,18 +361,26 @@ export async function recognizeReceiptFromLocalStorage(
 
   // Configure paths for Tesseract.js assets
   // Use CDN for worker and core files to ensure reliability in production
-  // langPath points to local public folder first, with CDN fallback via ensureLangFilesExist
+  // Use non-SIMD WASM for broader browser compatibility
   const normalizedWorkerOptions = Object.assign(
     {
       langPath:
-        "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/lang-data",
+        "https://cdn.jsdelivr.net/npm/@aspect-build/tesseract.js-lang@5/lang-data",
       workerPath:
-        "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js",
+        "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
       corePath:
-        "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd.wasm.js",
+        "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js",
+      // Disable caching issues
+      cacheMethod: "none",
     },
     (opts as any).workerOptions || {}
   );
+
+  console.log("[OCR] Using worker options:", {
+    langPath: normalizedWorkerOptions.langPath,
+    workerPath: normalizedWorkerOptions.workerPath,
+    corePath: normalizedWorkerOptions.corePath,
+  });
 
   // Simplified language validation since we're using CDN
   async function ensureLangFilesExist(requested: string) {
@@ -397,6 +405,7 @@ export async function recognizeReceiptFromLocalStorage(
   }
 
   onProgress?.({ status: "initializing-worker", progress: 42 });
+  console.log("[OCR] Creating worker with lang:", langString);
 
   let worker: any;
   try {
@@ -405,8 +414,9 @@ export async function recognizeReceiptFromLocalStorage(
       1, // OEM 1 = LSTM only (best for receipts)
       normalizedWorkerOptions
     );
+    console.log("[OCR] Worker created successfully");
   } catch (workerError: any) {
-    console.error("Worker creation failed:", workerError);
+    console.error("[OCR] Worker creation failed:", workerError);
     throw new Error(
       `Failed to initialize OCR worker: ${
         workerError?.message || "Unknown error"
@@ -417,6 +427,7 @@ export async function recognizeReceiptFromLocalStorage(
   try {
     // Set optimized parameters for receipt scanning
     onProgress?.({ status: "configuring", progress: 45 });
+    console.log("[OCR] Configuring worker parameters");
     if (typeof worker.setParameters === "function") {
       await worker.setParameters({
         // PSM 6 = Assume a single uniform block of text (good for receipts)
@@ -431,7 +442,9 @@ export async function recognizeReceiptFromLocalStorage(
     }
 
     onProgress?.({ status: "recognizing", progress: 50 });
+    console.log("[OCR] Starting recognition...");
     const result = await worker.recognize(imageToSend);
+    console.log("[OCR] Recognition complete, text length:", result?.data?.text?.length || 0);
 
     onProgress?.({ status: "done", progress: 100 });
 
