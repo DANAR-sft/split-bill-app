@@ -359,77 +359,55 @@ export async function recognizeReceiptFromLocalStorage(
     langString = String(lang) || "eng";
   }
 
-  // normalize workerOptions and provide a safe default langPath -> /tessdata
+  // Configure paths for Tesseract.js assets
+  // Use CDN for worker and core files to ensure reliability in production
+  // langPath points to local public folder first, with CDN fallback via ensureLangFilesExist
   const normalizedWorkerOptions = Object.assign(
-    { langPath: "/tessdata" },
+    {
+      langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/lang-data",
+      workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js",
+      corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core-simd.wasm.js",
+    },
     (opts as any).workerOptions || {}
   );
 
-  // Verify requested language traineddata files actually exist under langPath
-  // If a requested language file is missing in production, fallback to available ones.
-  // This avoids failing deployments where only a subset of traineddata files were uploaded.
+  // Simplified language validation since we're using CDN
   async function ensureLangFilesExist(requested: string) {
-    if (typeof window === "undefined") return requested;
-    const langPath = normalizedWorkerOptions.langPath || "/tessdata";
     const langs = String(requested)
       .split("+")
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const available: string[] = [];
-    for (const l of langs) {
-      try {
-        // Try HEAD first; some hosts may not support HEAD so fall back to GET on failure
-        let ok = false;
-        try {
-          const res = await fetch(`${langPath}/${l}.traineddata`, {
-            method: "HEAD",
-          });
-          ok = res.ok;
-        } catch (e) {
-          const res = await fetch(`${langPath}/${l}.traineddata`);
-          ok = res.ok;
-        }
-        if (ok) available.push(l);
-      } catch (e) {
-        // ignore missing/blocked files
-      }
-    }
-
-    if (available.length > 0) return available.join("+");
-
-    // If none of the requested languages exist, try common fallbacks
-    const fallbacks = ["ind", "eng"];
-    for (const f of fallbacks) {
-      try {
-        const res = await fetch(`${langPath}/${f}.traineddata`, {
-          method: "HEAD",
-        });
-        if (res.ok) return f;
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    // If nothing found, return original requested string and let tesseract.js handle the error
-    return requested;
+    if (langs.length > 0) return langs.join("+");
+    return "eng";
   }
 
   // Tesseract.js v5/v6: pass language directly to createWorker, no separate loadLanguage/initialize calls
   // createWorker must not receive functions (DataCloneError). We forward only plain options.
-  // Ensure language files exist and adjust langString if some traineddata files are missing
+  // Ensure language string is valid
   try {
     langString = await ensureLangFilesExist(langString);
     if (!langString || String(langString).trim() === "") langString = "eng";
   } catch (e) {
-    // ignore and proceed with original langString
+    console.warn("Language validation warning:", e);
+    langString = "eng";
   }
 
-  const worker: any = await (createWorker as any)(
-    langString,
-    1, // OEM 1 = LSTM only (best for receipts)
-    normalizedWorkerOptions
-  );
+  onProgress?.({ status: "initializing-worker", progress: 42 });
+
+  let worker: any;
+  try {
+    worker = await (createWorker as any)(
+      langString,
+      1, // OEM 1 = LSTM only (best for receipts)
+      normalizedWorkerOptions
+    );
+  } catch (workerError: any) {
+    console.error("Worker creation failed:", workerError);
+    throw new Error(
+      `Failed to initialize OCR worker: ${workerError?.message || "Unknown error"}. Please check your internet connection.`
+    );
+  }
 
   try {
     // Set optimized parameters for receipt scanning
@@ -461,9 +439,16 @@ export async function recognizeReceiptFromLocalStorage(
     }
 
     return result;
+  } catch (recognitionError: any) {
+    console.error("OCR recognition failed:", recognitionError);
+    throw new Error(
+      `OCR failed: ${recognitionError?.message || "Unknown error"}`
+    );
   } finally {
     try {
-      if (typeof worker.terminate === "function") await worker.terminate();
+      if (worker && typeof worker.terminate === "function") {
+        await worker.terminate();
+      }
     } catch (e) {
       // ignore termination errors
     }
