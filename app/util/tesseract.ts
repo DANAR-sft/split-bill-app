@@ -365,8 +365,66 @@ export async function recognizeReceiptFromLocalStorage(
     (opts as any).workerOptions || {}
   );
 
+  // Verify requested language traineddata files actually exist under langPath
+  // If a requested language file is missing in production, fallback to available ones.
+  // This avoids failing deployments where only a subset of traineddata files were uploaded.
+  async function ensureLangFilesExist(requested: string) {
+    if (typeof window === "undefined") return requested;
+    const langPath = normalizedWorkerOptions.langPath || "/tessdata";
+    const langs = String(requested)
+      .split("+")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const available: string[] = [];
+    for (const l of langs) {
+      try {
+        // Try HEAD first; some hosts may not support HEAD so fall back to GET on failure
+        let ok = false;
+        try {
+          const res = await fetch(`${langPath}/${l}.traineddata`, {
+            method: "HEAD",
+          });
+          ok = res.ok;
+        } catch (e) {
+          const res = await fetch(`${langPath}/${l}.traineddata`);
+          ok = res.ok;
+        }
+        if (ok) available.push(l);
+      } catch (e) {
+        // ignore missing/blocked files
+      }
+    }
+
+    if (available.length > 0) return available.join("+");
+
+    // If none of the requested languages exist, try common fallbacks
+    const fallbacks = ["ind", "eng"];
+    for (const f of fallbacks) {
+      try {
+        const res = await fetch(`${langPath}/${f}.traineddata`, {
+          method: "HEAD",
+        });
+        if (res.ok) return f;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // If nothing found, return original requested string and let tesseract.js handle the error
+    return requested;
+  }
+
   // Tesseract.js v5/v6: pass language directly to createWorker, no separate loadLanguage/initialize calls
   // createWorker must not receive functions (DataCloneError). We forward only plain options.
+  // Ensure language files exist and adjust langString if some traineddata files are missing
+  try {
+    langString = await ensureLangFilesExist(langString);
+    if (!langString || String(langString).trim() === "") langString = "eng";
+  } catch (e) {
+    // ignore and proceed with original langString
+  }
+
   const worker: any = await (createWorker as any)(
     langString,
     1, // OEM 1 = LSTM only (best for receipts)
